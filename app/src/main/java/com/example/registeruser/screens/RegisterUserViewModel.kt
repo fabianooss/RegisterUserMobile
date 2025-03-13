@@ -9,8 +9,39 @@ data class RegisterUser(
     val user: String = "",
     val email: String = "",
     val password: String = "",
-    val confirmPassword: String = ""
-)
+    val confirmPassword: String = "",
+    val errorMessage: String = "",
+) {
+    fun validatePassord(): String {
+        if (password.isBlank()) {
+            return "Password is required"
+        }
+        return ""
+    }
+
+    fun validateConfirmPassword(): String {
+        if (confirmPassword != password) {
+            return "The confirm password is different"
+        }
+        return ""
+    }
+
+    fun validateAllField() {
+        if (user.isBlank()) {
+            throw Exception("User is required")
+        }
+        if (email.isBlank()) {
+            throw Exception("Email is required")
+        }
+        if (validatePassord().isNotBlank()) {
+            throw Exception(validatePassord())
+        }
+        if (validateConfirmPassword().isNotBlank()) {
+            throw Exception(validateConfirmPassword())
+        }
+    }
+
+}
 
 class RegisterUserViewModel : ViewModel() {
 
@@ -33,7 +64,21 @@ class RegisterUserViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(confirmPassword = confirm)
     }
 
+    fun register(): Boolean  {
+        try {
+            _uiState.value.validateAllField()
+            return true
+            // register in database or invoke api
+        }
+        catch (e: Exception) {
+            _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknow error")
+            return false
+        }
+    }
 
+    fun cleanErrorMessage() {
+        _uiState.value = _uiState.value.copy(errorMessage = "")
+    }
 
 
 }
