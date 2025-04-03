@@ -13,6 +13,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,11 +27,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.registeruser.components.ErrorDialog
 import com.example.registeruser.components.MyPasswordField
 import com.example.registeruser.components.MyTextField
+import com.example.registeruser.database.AppDatabase
 import com.example.registeruser.ui.theme.RegisterUserTheme
 
 @Composable
 fun RegisterUserMainScreen() {
-    val registerUserViewModel : RegisterUserViewModel = viewModel()
+    val ctx = LocalContext.current
+    val userDao = AppDatabase.getDatabase(ctx).userDao()
+
+    val registerUserViewModel : RegisterUserViewModel =
+        viewModel(
+            factory =
+                RegisterUserViewModelFactory(userDao)
+        )
 
     Scaffold {
         Column(
@@ -86,10 +95,7 @@ fun RegisterUserFields(registerUserViewModel: RegisterUserViewModel) {
     Button(
         modifier = Modifier.padding(top = 16.dp),
         onClick = {
-            if (registerUserViewModel.register()) {
-                Toast.makeText(ctx, "User registered",
-                    Toast.LENGTH_SHORT).show()
-            }
+            registerUserViewModel.register()
         }
     ) {
         Text(text = "Register user")
@@ -99,9 +105,16 @@ fun RegisterUserFields(registerUserViewModel: RegisterUserViewModel) {
         ErrorDialog(
             error = registerUser.value.errorMessage,
             onDismissRequest =  {
-                registerUserViewModel.cleanErrorMessage()
+                registerUserViewModel.cleanDisplayValues()
             },
         )
+    }
+    LaunchedEffect (registerUser.value.isSaved) {
+        if (registerUser.value.isSaved) {
+            Toast.makeText(ctx, "User registered",
+                Toast.LENGTH_SHORT).show()
+            registerUserViewModel.cleanDisplayValues()
+        }
     }
 
 }
