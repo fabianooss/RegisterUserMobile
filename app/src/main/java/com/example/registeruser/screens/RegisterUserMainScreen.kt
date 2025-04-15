@@ -1,5 +1,6 @@
 package com.example.registeruser.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,16 +30,20 @@ import com.example.registeruser.components.MyPasswordField
 import com.example.registeruser.components.MyTextField
 import com.example.registeruser.database.AppDatabase
 import com.example.registeruser.ui.theme.RegisterUserTheme
+import java.util.logging.Logger
 
 @Composable
-fun RegisterUserMainScreen() {
+fun RegisterUserMainScreen(id: Int?) {
+
+    Log.d("OnEdit", "Id: ${id}")
+
     val ctx = LocalContext.current
     val userDao = AppDatabase.getDatabase(ctx).userDao()
 
     val registerUserViewModel : RegisterUserViewModel =
         viewModel(
             factory =
-                RegisterUserViewModelFactory(userDao)
+                RegisterUserViewModelFactory(id, userDao)
         )
 
     Scaffold {
@@ -127,6 +132,6 @@ fun RegisterUserFields(registerUserViewModel: RegisterUserViewModel) {
 @Preview(showSystemUi = true, showBackground = true, device = "id:Galaxy Nexus")
 fun RegisterUserPreview() {
     RegisterUserTheme {
-        RegisterUserMainScreen()
+        RegisterUserMainScreen(null)
     }
 }

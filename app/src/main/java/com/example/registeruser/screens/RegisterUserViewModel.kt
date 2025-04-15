@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class RegisterUser(
+    val id: Int = 0,
     val user: String = "",
     val email: String = "",
     val password: String = "",
@@ -48,6 +49,7 @@ data class RegisterUser(
 
     fun toUser(): User {
         return User(
+            id = id,
             name = user,
             email = email,
             password = password
@@ -57,11 +59,33 @@ data class RegisterUser(
 }
 
 class RegisterUserViewModel(
+    private val id: Int?,
     private val userDao: UserDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUser())
     val uiState : StateFlow<RegisterUser> = _uiState.asStateFlow()
+
+    init {
+        id?.let { id ->
+            viewModelScope.launch {
+                userDao.findById(id)?.let { user ->
+                    _uiState.value = _uiState.value.copy(
+                        id = user.id,
+                        user = user.name,
+                        password = user.password,
+                        email = user.email
+                    )
+
+                }
+
+            }
+
+
+        }
+
+
+    }
 
     fun onUserChange(user: String) {
         _uiState.value = _uiState.value.copy(user = user)
@@ -83,7 +107,7 @@ class RegisterUserViewModel(
         try {
             _uiState.value.validateAllField()
             viewModelScope.launch {
-                userDao.insert(_uiState.value.toUser())
+                userDao.upsert(_uiState.value.toUser())
                 _uiState.value = _uiState.value.copy(isSaved = true)
             }
         }
