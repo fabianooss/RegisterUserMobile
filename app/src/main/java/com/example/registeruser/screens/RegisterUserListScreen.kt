@@ -102,6 +102,7 @@ fun ItemUser(user: User,
         {
             Text(text = user.name, style = MaterialTheme.typography.displayLarge)
             Text(text = user.email)
+            Text(text = user.insertDate.toString())
         }
     }
 }
